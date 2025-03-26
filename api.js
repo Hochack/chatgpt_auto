@@ -1,6 +1,8 @@
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const fs = require('fs');
+const e = require('cors');
+require('dotenv').config();
 // const { getVerificationCode } = require('./gmail');
 
 puppeteer.use(StealthPlugin());
@@ -113,8 +115,10 @@ puppeteer.use(StealthPlugin());
 
 async function getResponse(question) {
     const browser = await puppeteer.launch({
-        headless: "new", // ✅ Chạy không ẩn trình duyệt để debug
-        args: ["--disable-web-security", "--disable-features=IsolateOrigins,site-per-process"]
+        // headless: "new", // ✅ Chạy không ẩn trình duyệt để debug
+        // args: ["--disable-web-security", "--disable-features=IsolateOrigins,site-per-process"]
+        args: ["--disable-setuid-sandbox", "--no-sandbox", "--single-process", "--no-zygote"],
+        executablePath: process.env.NODE_ENV === 'production'? process.env.PUPPETEER_EXECUTABLE_PATH : puppeteer.executablePath(),
     });
 
     const page = await browser.newPage();
