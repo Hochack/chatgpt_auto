@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat với GPT</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            max-width: 500px;
+            margin: auto;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        input {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 15px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        .response {
+            margin-top: 20px;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+            text-align: left;
+            overflow: auto;
+        }
+
+        #question {
+            max-height: 100px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .response ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .response li {
+            margin-bottom: 10px;
+        }
+
+        .response li p {
+            margin: 0;
+            padding: 5px 0;
+        }
+
+        .response strong {
+            font-size: 16px;
+            color: #007bff;
+        }
+
+        .response .error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>Kết quả</h2>
+        <div id="question" contenteditable="true" oninput="updatePreview(); saveToCache();">
+            <span id="editor_noidung"
+                style="color: rgb(9, 9, 9); font-family: Roboto; font-size: 16px; background-color: rgb(244, 244, 244);">
+
+                (A) He is driving a car in the snow.
+                (B) He has already shoveled the snow off the roof.
+                (C) His car door is covered in snow.
+                (D) He is playing with friends in the snow.</span>
+        </div>
+        <button onclick="askChatGPT()">Gửi</button>
+        <div class="response" id="response"></div>
+    </div>
+
+    <script>
+        function askChatGPT() {
+            let questions = document.getElementById("editor_noidung").innerText;
+           
+            let responseDiv = document.getElementById("response");
+            responseDiv.innerHTML = "⏳ Đang xử lý...";
+            // Lấy url gốc trên trình duyệt
+            let url = window.location.origin;
+
+            fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ question: questions })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        responseDiv.innerHTML = formatResponse(data.answer);
+                    } else {
+                        responseDiv.innerHTML = "<p class='error'>❌ Lỗi khi nhận phản hồi!</p>";
+                    }
+                })
+                .catch(error => {
+                    console.error("❌ Lỗi kết nối API:", error);
+                    responseDiv.innerHTML = "<p class='error'>❌ Lỗi kết nối API!</p>";
+                });
+
+            function formatResponse(text) {
+                let lines = text.split("\n");
+                let formattedText = "<ul>";
+
+                let listStarted = false;
+                lines.forEach(line => {
+                    line = line.trim();
+                    if (!line) return;
+
+                    // Nếu là một đáp án (A), (B), (C), (D) thì tạo một danh sách mới
+                    if (/^\([A-D]\)/.test(line)) {
+                        if (listStarted) formattedText += "</ul></li>"; // Đóng danh sách trước nếu có
+                        formattedText += `<li><p><strong><span id="editor_noidung" style="color: rgb(9, 9, 9); font-family: Roboto; font-size: 16px; background-color: rgb(244, 244, 244);">${line}</span></strong></p><ul>`;
+                        listStarted = true;
+                    } else {
+                        // Thêm vào danh sách con
+                        formattedText += `<li><p><span id="editor_noidung" style="color: rgb(9, 9, 9); font-family: Roboto; font-size: 16px; background-color: rgb(244, 244, 244);">${line}</span></p></li>`;
+                    }
+                });
+
+                if (listStarted) formattedText += "</ul></li>"; // Đóng danh sách nếu còn mở
+                formattedText += "</ul>";
+
+                return formattedText;
+            }
+
+        }
+    </script>
+
+</body>
+
+</html>
