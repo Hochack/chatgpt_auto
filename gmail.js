@@ -1,13 +1,12 @@
 const fs = require('fs');
 const readline = require('readline');
 const { google } = require('googleapis');
-const e = require('cors');
 
 async function getVerificationCode() {
     console.log("📨 Đang lấy mã xác minh từ Gmail...");
 
     // Đọc credentials từ file JSON
-    const credentials = JSON.parse(fs.readFileSync('Gmail_API.json'));
+    const credentials = JSON.parse(fs.readFileSync('gmail_api.json'));
     const { client_secret, client_id, redirect_uris } = credentials.web;
 
     const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
